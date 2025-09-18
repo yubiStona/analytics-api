@@ -20,6 +20,7 @@ app.get("/", (req, res) => {
 // });
 app.use("/api/un-reg", router);
 app.use("/api/un-log", router);
+app.use("/api/sold", router);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
