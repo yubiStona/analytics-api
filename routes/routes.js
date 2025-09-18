@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router();
 const getUnregisteredMembers = require("../controllers/unregisteredMembersController");
 const nonLoggedinAgents = require("../controllers/nonLoggedinAgent.controller");
-const policiesSoldByEachRep = require('../controllers/policiesSoldByEachRep');
+const {policiesSoldByEachRep,getPoliciesSoldByAgentId} = require('../controllers/policiesSoldByEachRep');
 
-router.get('/members', getUnregisteredMembers);
-router.get('/agents', nonLoggedinAgents);
-router.get('/policies-rep', policiesSoldByEachRep);
+router.get('/un-reg/members', getUnregisteredMembers);
+router.get('/un-log/agents', nonLoggedinAgents);
+router.get('/sold/policies-rep', policiesSoldByEachRep);
+router.get('/sold/policies-rep/:id',getPoliciesSoldByAgentId);
 
 module.exports = router;
