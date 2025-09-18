@@ -1,0 +1,28 @@
+{
+  "name": "analytics-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "nodemon": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://thecrazydiamond1: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@github.com/yubiStona/analytics-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yubiStona/analytics-api/issues"
+  },
+  "homepage": "https://github.com/yubiStona/analytics-api#readme",
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "mysql2": "^3.15.0",
+    "nodemon": "^3.1.10"
+  }
+}
