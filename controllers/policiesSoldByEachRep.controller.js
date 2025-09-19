@@ -2,8 +2,13 @@ const policiesService = require("../services/policiesSoldByEachRep.service");
 
 const policiesSoldByEachRep = async (req, res) => {
   try {
-    const policiesWithRep = await policiesService.policiesSoldByEachRepService();
-    res.status(200).json({ policiesWithRep });
+    const policiesWithRep =
+      await policiesService.policiesSoldByEachRepService();
+    res.status(200).json({
+      status: "success",
+      message: "Data fetched successfully",
+      policiesWithRep,
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
