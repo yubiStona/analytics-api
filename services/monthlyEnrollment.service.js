@@ -13,49 +13,46 @@ const monthlyEnrollmentService = async()=>{
             AND status IN ('active', 'termed', 'withdrawn')
             GROUP BY month
             ORDER BY month`);
-        // Extract days and counts from query rows
-        const months = rows.map(row => row.month);
-        const totalCounts = rows.map(row => row.enrollments);
-        const activeCounts = rows.map(row => row.active_count);
-        const withdrawnCounts = rows.map(row => row.withdrawn_count);
-        const termedCounts = rows.map(row => row.termed_count);
+        const monthnames = [];
+        for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        // Get abbreviated month name in English locale
+        monthnames.push(d.toLocaleString('en-US', { month: 'short' }));
+        }
 
-        // Prepare arrays with zeros for all days
-        const monthnames = ['Jan','Feb','Mar','Apr','Jun','July','Aug','Sep','Oct','Nov','Dec'];
-        let activeEnrollments = [];
-        let withdrawnEnrollments = [];
-        let termedEnrollments = [];
-        let totalEnrollments = [];
+        const dataMap = new Map(rows.map(row => [row.month, row]));
 
-        let index = 0;
-        monthnames.forEach(month => {
-            if (months.includes(month)) {
-                // Use the values from the database in order
-                activeEnrollments.push(parseInt(activeCounts[index]));
-                withdrawnEnrollments.push(parseInt(withdrawnCounts[index]));
-                termedEnrollments.push(parseInt(termedCounts[index]));
-                totalEnrollments.push(parseInt(totalCounts[index]));
-                index++;
-            } else {
-                // No data for this day, push zero
-                activeEnrollments.push(0);
-                withdrawnEnrollments.push(0);
-                termedEnrollments.push(0);
-                totalEnrollments.push(0);
-            }
+        const activeEnrollments = [];
+        const withdrawnEnrollments = [];
+        const termedEnrollments = [];
+        const totalEnrollments = [];
+
+        monthnames.forEach((month) => {
+        const row = dataMap.get(month);
+        if (row) {
+            activeEnrollments.push(parseInt(row.active_count));
+            withdrawnEnrollments.push(parseInt(row.withdrawn_count));
+            termedEnrollments.push(parseInt(row.termed_count));
+            totalEnrollments.push(parseInt(row.enrollments));
+        } else {
+            activeEnrollments.push(0);
+            withdrawnEnrollments.push(0);
+            termedEnrollments.push(0);
+            totalEnrollments.push(0);
+        }
         });
 
-        // Structure response like Laravel function
         const response = {
-            status: 'success',
-            message: 'Data fetched successfully',
-            data: [
-                { name: 'Months', data: monthnames },
-                { name: 'Total Enrollments', data: totalEnrollments },
-                { name: 'Active', data: activeEnrollments },
-                { name: 'Withdrawn', data: withdrawnEnrollments },
-                { name: 'Termed', data: termedEnrollments }
-            ]
+        status: 'success',
+        message: 'Data fetched successfully',
+        data: [
+            { name: 'Months', data: monthnames },
+            { name: 'Total Enrollments', data: totalEnrollments },
+            { name: 'Active', data: activeEnrollments },
+            { name: 'Withdrawn', data: withdrawnEnrollments },
+            { name: 'Termed', data: termedEnrollments }
+        ]
         };
 
         return response;
