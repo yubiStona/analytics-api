@@ -1,36 +1,35 @@
-const {pool,pool2}=require('../config/db');
+const {pool, pool2}= require("../config/db");
 
-const weeklyEnrollmentService = async () => {
-    try {
-        const [rows] = await pool2.query(`
-            SELECT 
-                DATE_FORMAT(FROM_UNIXTIME(edate), '%a') AS day,
-                COUNT(userid) AS total_count,
-                SUM(CASE WHEN status = 'ACTIVE' THEN 1 ELSE 0 END) AS active_count,
-                SUM(CASE WHEN status = 'WITHDRAWN' THEN 1 ELSE 0 END) AS withdrawn_count,
-                SUM(CASE WHEN status = 'TERMED' THEN 1 ELSE 0 END) AS termed_count
-            FROM userinfo_policy_address
-            WHERE YEARWEEK(FROM_UNIXTIME(edate, '%Y-%m-%d')) = YEARWEEK(NOW())
-            GROUP BY day
-        `);
-
+const monthlyEnrollmentService = async()=>{
+    try{
+        const [rows] = await pool2.query(`SELECT
+            DATE_FORMAT(created_at, '%b') AS month,
+            COUNT(*) AS enrollments,
+            SUM(CASE WHEN status = 'ACTIVE' THEN 1 ELSE 0 END) AS active_count,
+            SUM(CASE WHEN status = 'WITHDRAWN' THEN 1 ELSE 0 END) AS withdrawn_count,
+            SUM(CASE WHEN status = 'TERMED' THEN 1 ELSE 0 END) AS termed_count
+            FROM policies
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            AND status IN ('active', 'termed', 'withdrawn')
+            GROUP BY month
+            ORDER BY month`);
         // Extract days and counts from query rows
-        const days = rows.map(row => row.day);
-        const totalCounts = rows.map(row => row.total_count);
+        const months = rows.map(row => row.month);
+        const totalCounts = rows.map(row => row.enrollments);
         const activeCounts = rows.map(row => row.active_count);
         const withdrawnCounts = rows.map(row => row.withdrawn_count);
         const termedCounts = rows.map(row => row.termed_count);
 
         // Prepare arrays with zeros for all days
-        const daynames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const monthnames = ['Jan','Feb','Mar','Apr','Jun','July','Aug','Sep','Oct','Nov','Dec'];
         let activeEnrollments = [];
         let withdrawnEnrollments = [];
         let termedEnrollments = [];
         let totalEnrollments = [];
 
         let index = 0;
-        daynames.forEach(day => {
-            if (days.includes(day)) {
+        monthnames.forEach(month => {
+            if (months.includes(month)) {
                 // Use the values from the database in order
                 activeEnrollments.push(parseInt(activeCounts[index]));
                 withdrawnEnrollments.push(parseInt(withdrawnCounts[index]));
@@ -51,8 +50,8 @@ const weeklyEnrollmentService = async () => {
             status: 'success',
             message: 'Data fetched successfully',
             data: [
-                { name: 'Days', data: daynames },
-                { name: 'Total Counts', data: totalEnrollments },
+                { name: 'Months', data: monthnames },
+                { name: 'Total Enrollments', data: totalEnrollments },
                 { name: 'Active', data: activeEnrollments },
                 { name: 'Withdrawn', data: withdrawnEnrollments },
                 { name: 'Termed', data: termedEnrollments }
@@ -60,12 +59,11 @@ const weeklyEnrollmentService = async () => {
         };
 
         return response;
-
-    } catch (err) {
+    }catch(err){
         console.error(err);
         return err;
     }
+
 }
 
-
-module.exports = weeklyEnrollmentService;
+module.exports = monthlyEnrollmentService;
