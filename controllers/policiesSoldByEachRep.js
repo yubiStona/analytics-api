@@ -2,8 +2,7 @@ const policiesService = require("../services/policiesSoldByEachRep.service");
 
 const policiesSoldByEachRep = async (req, res) => {
   try {
-    const policiesWithRep =
-      await policiesService.policiesSoldByEachRepService();
+    const policiesWithRep = await policiesService.policiesSoldByEachRepService();
     res.status(200).json({ policiesWithRep });
   } catch (err) {
     console.log(err);
