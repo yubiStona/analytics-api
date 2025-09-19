@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const router = require("./routes/routes");
+const enrollmentRouter = require("./routes/enrollmentRoutes")
 const { pool, pool2 } = require("./config/db");
 require("dotenv").config();
 
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 //     res.json(result);
 // });
 app.use("/api", router);
+app.use("/enrollments", enrollmentRouter );
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
