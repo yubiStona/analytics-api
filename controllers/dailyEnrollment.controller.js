@@ -1,4 +1,4 @@
-const {dailyEnroll} = require("../services/dailyEnroll.service");
+const {dailyEnroll} = require("../services/dailyEnrollment.service");
 
 const getDailyEnroll = async (req, res) => {
     try {
