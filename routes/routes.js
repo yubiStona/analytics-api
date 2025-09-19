@@ -8,5 +8,4 @@ router.get('/un-reg/members', getUnregisteredMembers);
 router.get('/un-log/agents', nonLoggedinAgents);
 router.get('/sold/policies-rep', policiesSoldByEachRep);
 router.get('/sold/policies-rep/:id',getPoliciesSoldByAgentId);
-
 module.exports = router;

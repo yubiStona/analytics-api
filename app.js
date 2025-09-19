@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
 //     res.json(result);
 // });
 app.use("/api", router);
-app.use("/enrollments", enrollmentRouter );
+app.use("/api/enrollments", enrollmentRouter );
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
