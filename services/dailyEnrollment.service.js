@@ -6,14 +6,14 @@ const dailyEnroll = async (date) => {
     if (date) {
       const [rows] = await pool2.query(
         `SELECT
-                    TIME(created_at) AS time,
+                    FROM_UNIXTIME(edate, '%H:%i:%s') AS time,
                     status,
-                    COUNT(*) AS enrollments
+                    COUNT(*) AS enrollment
                 FROM policies
-                WHERE DATE(created_at) = ?
+                WHERE FROM_UNIXTIME(edate, '%Y-%m-%d') = ?
                   AND status IN ('active', 'termed', 'withdrawn')
-                GROUP BY DATE(created_at), TIME(created_at)
-                ORDER BY time;`,[date]
+                GROUP BY FROM_UNIXTIME(edate, '%Y-%m-%d'), FROM_UNIXTIME(edate, '%H:%i:%s')
+                ORDER BY time`,[date]
       );
       result = rows;
     }

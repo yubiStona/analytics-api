@@ -3,18 +3,18 @@ const {pool, pool2}= require("../config/db");
 const monthlyEnrollmentService = async()=>{
     try{
         const [rows] = await pool2.query(`SELECT
-            DATE_FORMAT(created_at, '%b') AS month,
+            DATE_FORMAT(FROM_UNIXTIME(edate), '%b') AS month,
             COUNT(*) AS enrollments,
             SUM(CASE WHEN status = 'ACTIVE' THEN 1 ELSE 0 END) AS active_count,
             SUM(CASE WHEN status = 'WITHDRAWN' THEN 1 ELSE 0 END) AS withdrawn_count,
             SUM(CASE WHEN status = 'TERMED' THEN 1 ELSE 0 END) AS termed_count
             FROM policies
-            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            WHERE DATE_FORMAT(FROM_UNIXTIME(edate), '%Y-%m') >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 6 MONTH), '%Y-%m')
+            AND DATE_FORMAT(FROM_UNIXTIME(edate), '%Y-%m') < DATE_FORMAT(CURDATE(), '%Y-%m')
             AND status IN ('active', 'termed', 'withdrawn')
-            GROUP BY month
-            ORDER BY month`);
+            GROUP BY month`);
         const monthnames = [];
-        for (let i = 5; i >= 0; i--) {
+        for (let i = 6; i >= 1; i--) {
         const d = new Date();
         d.setMonth(d.getMonth() - i);
         // Get abbreviated month name in English locale

@@ -2,7 +2,7 @@ const {dailyEnroll} = require("../services/dailyEnrollment.service");
 
 const getDailyEnroll = async (req, res) => {
     try {
-        const { date } = req.query;
+        const date = req.params.id;
         if (!date) {
             return res.status(400).json({ status: 'error', message: 'Missing required query parameter: date' });
         }

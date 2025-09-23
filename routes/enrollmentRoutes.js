@@ -6,7 +6,7 @@ const {yearlyEnrollmentController}= require("../controllers/yearlyEnrollment.con
 const router = express.Router();
 
 router.get("/weekly", weeklyEnrollment);
-router.get("/daily", getDailyEnroll);
+router.get("/daily/:id", getDailyEnroll);
 router.get("/monthly", monthlyEnrollment);
 router.get("/yearly", yearlyEnrollmentController);
 module.exports = router;

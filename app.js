@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const router = require("./routes/routes");
 const enrollmentRouter = require("./routes/enrollmentRoutes")
+const carrierBasedEnrollmentRouter = require("./routes/carrrierBasedEnrollmentRoutes");
 const { pool, pool2 } = require("./config/db");
 require("dotenv").config();
 
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 // });
 app.use("/api", router);
 app.use("/api/enrollments", enrollmentRouter );
+app.use("/api/carrier", carrierBasedEnrollmentRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
