@@ -9,4 +9,5 @@ router.get("/weekly", weeklyEnrollment);
 router.get("/daily/:id", getDailyEnroll);
 router.get("/monthly", monthlyEnrollment);
 router.get("/yearly", yearlyEnrollmentController);
+
 module.exports = router;
