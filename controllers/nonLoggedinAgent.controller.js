@@ -2,12 +2,14 @@ const getNonLoggedInAgents = require("../services/getNonLoggedInAgents.service")
 
 const nonLoggedinAgents = async (req, res) => {
   try {
-    const { data, length } = await getNonLoggedInAgents();
+    const {nonLoggedin_agents, loggedin_agents, nonLoggedin_counts, loggedin_counts}= await getNonLoggedInAgents();
     res.status(200).json({
       status: "success",
       message: "Data fetched successfully",
-      data,
-      length,
+      loggedin_counts,
+      nonLoggedin_counts,
+      loggedin_agents,
+      nonLoggedin_agents
     });
   } catch (err) {
     console.log(err);

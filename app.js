@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const router = require("./routes/routes");
+const cors = require('cors');
 const enrollmentRouter = require("./routes/enrollmentRoutes")
 const carrierBasedEnrollmentRouter = require("./routes/carrrierBasedEnrollmentRoutes");
 const { pool, pool2 } = require("./config/db");
@@ -12,6 +13,10 @@ app.get("/", (req, res) => {
   res.send("Welcome to the Analytics API");
 });
 
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true, // if you use cookies or authentication headers
+}));
 // app.get('/members', async(req, res) => {
 //     const [query] = await pool.query('SELECT id FROM sso_users');
 //     const [query2] = await pool2.query(`SELECT userid FROM userinfo`);

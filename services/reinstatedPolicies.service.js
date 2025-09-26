@@ -7,7 +7,12 @@ const reinstatedPolicyService = async()=>{
                 JOIN policy_updates pu ON p.policy_id = pu.elgb_policyid
                 WHERE pu.elgb_act = 'rpc'
                 GROUP BY Reinstated_Policy`);
-        return {data : rows, length : rows.length}
+        const [rows2]= await pool2.query(`SELECT count(policy_id) AS count from policies where policy_id not in
+                (SELECT distinct p.policy_id AS Reinstated_Policy
+                FROM policies p
+                JOIN policy_updates pu ON p.policy_id = pu.elgb_policyid
+                WHERE pu.elgb_act = 'rpc')`)
+        return {reinstated : rows, total_reinstated : rows.length, others : rows2}
 
     }catch(err){
         console.error(err)

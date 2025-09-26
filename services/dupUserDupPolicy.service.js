@@ -10,7 +10,7 @@ const dupUserDupPolicyService = async()=>{
                     GROUP BY u.cemail
                     HAVING COUNT(DISTINCT u.userid) > 1
                     AND COUNT(DISTINCT p.policy_id) > 1`);
-        return rows;
+        return {data:rows, length:rows.length};
     }catch(err){
         console.error(err);
         return err;

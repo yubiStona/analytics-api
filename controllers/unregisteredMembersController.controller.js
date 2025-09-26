@@ -2,12 +2,14 @@ const getUnregisteredMembersService = require("../services/unregisteredMember.se
 
 const getUnregisteredMembers = async (req, res) => {
   try {
-    const { data, length } = await getUnregisteredMembersService();
+    const { unreg, reg, unreg_counts, reg_counts } = await getUnregisteredMembersService();
     res.status(200).json({
       status: "success",
       message: "Data fetched successfully",
-      length,
-      data,
+      unreg_counts,
+      reg_counts,
+      unreg,
+      reg
     });
   } catch (err) {
     console.log(err);
