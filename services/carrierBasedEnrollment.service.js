@@ -1,4 +1,4 @@
-const {pool, pool2} = require('../config/db')
+const {pool2} = require('../config/db')
 
 const carrierBasedDailyEnrollmentService = async(date)=>{
     try{

@@ -40,12 +40,12 @@ const policyStatusService = async(data)=>{
             return rows
 
         }else{
-            const date = data.body.date|| new Date().toISOString().split('T')[0];
+            const date = data.body.date || new Date().toISOString().split('T')[0];
             const [rows] = await pool2.query(`SELECT
                 FROM_UNIXTIME(elgb_act_date, '%H') AS time,        
                 SUM(CASE WHEN elgb_act = 'new' THEN 1 ELSE 0 END) AS new_policy,
                 SUM(CASE WHEN elgb_act = 'wdr' THEN 1 ELSE 0 END) AS withdrawn_policy,
-                SUM(CASE WHEN elgb_act = 'tnp' THEN 1 ELSE 0 END) AS termed_policy,
+                SUM(CASE WHEN elgb_act in ('tnp', 'tcr') THEN 1 ELSE 0 END) AS termed_policy,
                 SUM(CASE WHEN elgb_act = 'rpc' THEN 1 ELSE 0 END) AS reinstated_policy           
                 FROM policy_updates
                 WHERE FROM_UNIXTIME(elgb_act_date, '%Y-%m-%d') = ?

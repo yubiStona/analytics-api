@@ -4,7 +4,6 @@ const router = require("./routes/routes");
 const cors = require('cors');
 const enrollmentRouter = require("./routes/enrollmentRoutes")
 const carrierBasedEnrollmentRouter = require("./routes/carrrierBasedEnrollmentRoutes");
-const { pool, pool2 } = require("./config/db");
 require("dotenv").config();
 
 app.use(express.json());
