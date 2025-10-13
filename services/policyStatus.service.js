@@ -8,7 +8,7 @@ const policyStatusService = async(data)=>{
                 YEAR(FROM_UNIXTIME(elgb_act_date)) as year,         
                 SUM(CASE WHEN elgb_act = 'new' THEN 1 ELSE 0 END) AS new_policy,
                 SUM(CASE WHEN elgb_act = 'wdr' THEN 1 ELSE 0 END) AS withdrawn_policy,
-                SUM(CASE WHEN elgb_act = 'tnp' THEN 1 ELSE 0 END) AS termed_policy,
+                SUM(CASE WHEN elgb_act in ('tnp', 'tcr') THEN 1 ELSE 0 END) AS termed_policy,
                 SUM(CASE WHEN elgb_act = 'rpc' THEN 1 ELSE 0 END) AS reinstated_policy           
                 FROM policy_updates
                 WHERE YEAR(FROM_UNIXTIME(elgb_act_date)) >= YEAR(DATE_SUB(CURDATE(), INTERVAL 6 YEAR))
@@ -39,7 +39,7 @@ const policyStatusService = async(data)=>{
             YEAR(FROM_UNIXTIME(elgb_act_date)) as year,
             SUM(CASE WHEN elgb_act = 'new' THEN 1 ELSE 0 END) AS new_policy,
             SUM(CASE WHEN elgb_act = 'wdr' THEN 1 ELSE 0 END) AS withdrawn_policy,
-            SUM(CASE WHEN elgb_act = 'tnp' THEN 1 ELSE 0 END) AS termed_policy,
+            SUM(CASE WHEN elgb_act in ('tnp', 'tcr') THEN 1 ELSE 0 END) AS termed_policy,
             SUM(CASE WHEN elgb_act = 'rpc' THEN 1 ELSE 0 END) AS reinstated_policy
             FROM policy_updates
             WHERE DATE_FORMAT(FROM_UNIXTIME(elgb_act_date), '%Y-%m') BETWEEN ? AND ?
@@ -54,7 +54,7 @@ const policyStatusService = async(data)=>{
                 DATE_FORMAT(FROM_UNIXTIME(elgb_act_date), '%a') AS day,        
                 SUM(CASE WHEN elgb_act = 'new' THEN 1 ELSE 0 END) AS new_policy,
                 SUM(CASE WHEN elgb_act = 'wdr' THEN 1 ELSE 0 END) AS withdrawn_policy,
-                SUM(CASE WHEN elgb_act = 'tnp' THEN 1 ELSE 0 END) AS termed_policy,
+                SUM(CASE WHEN elgb_act in ('tnp', 'tcr') THEN 1 ELSE 0 END) AS termed_policy,
                 SUM(CASE WHEN elgb_act = 'rpc' THEN 1 ELSE 0 END) AS reinstated_policy           
                 FROM policy_updates
                 WHERE YEARWEEK(FROM_UNIXTIME(elgb_act_date, '%Y-%m-%d')) = YEARWEEK(?)
