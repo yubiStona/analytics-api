@@ -11,7 +11,8 @@ const db = mysql.createPool({
   idleTimeout: 60000,
   queueLimit: 0,
   enableKeepAlive: true,
-  keepAliveInitialDelay: 10000
+  keepAliveInitialDelay: 10000,
+  connectTimeout: 10000
 });
 
 const db2 = mysql.createPool({
@@ -25,7 +26,8 @@ const db2 = mysql.createPool({
   idleTimeout: 60000,
   queueLimit: 0,
   enableKeepAlive: true,
-  keepAliveInitialDelay: 10000
+  keepAliveInitialDelay: 10000,
+  connectTimeout: 10000
 });
 const pool = db.promise();
 const pool2 = db2.promise();
@@ -39,23 +41,20 @@ setInterval(() => {
   });
 }, 120000);
 
-db.getConnection((err, connection) => {
-  if (err) {
-    console.error('Primary DB: Initial connection failed:', err.message);
-    return;
+async function tryGetConnection(pool,name, retries = 5, delay = 2000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const connection = await pool.getConnection();
+      connection.release();
+      console.log(`${name} successfully connected`);
+      return true;
+    } catch (err) {
+      console.error(`DB connection attempt ${i + 1} failed: ${err.message}`);
+      if (i === retries - 1) throw err;
+      await new Promise(r => setTimeout(r, delay));
+    }
   }
-  console.log('Primary DB: Initial connection successful');
-  connection.release();
-});
-
-db2.getConnection((err, connection) => {
-  if (err) {
-    console.error('Second DB: Initial connection failed:', err.message);
-    return;
-  }
-  console.log('Second DB: Initial connection successful');
-  connection.release();
-});
+}
  
-module.exports = { pool, pool2, db, db2 };
+module.exports = { pool, pool2, db, db2, tryGetConnection };
  
