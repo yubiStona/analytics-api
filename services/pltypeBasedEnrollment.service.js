@@ -1,15 +1,19 @@
 const { pool, pool2 } = require("../config/db");
+const RedisClient = require("../utils/redisClient");
 
 const pltypeBasedEnrollmentservice = async(data)=>{
     try{
         if(data.body.data === 'MONTH'){
             const date = data.body.from;
             const date2 = data.body.to ;
-
             if (!date || !date2) {
             return { error: "Both dates must be present." };
             }
-
+            const cachedData = await RedisClient.get(`pltypeCacheMonthly${date2}to${date}`);
+            if(cachedData){
+                console.log(`fetched pltypeCacheMonthly${date2}to${date} from redis`)
+                return JSON.parse(cachedData)
+            }
             function monthDiff(d1, d2) {
             const [y1, m1] = d1.split("-").map(Number);
             const [y2, m2] = d2.split("-").map(Number);
@@ -19,6 +23,7 @@ const pltypeBasedEnrollmentservice = async(data)=>{
             if (monthDiff(date, date2) >= 12) {
              return { error: "The difference between TO and FROM should not exceed 12 months." };
             }
+
             const[query] = await pool2.query(`SELECT
             YEAR(FROM_UNIXTIME(p.edate)) AS year,
             DATE_FORMAT(FROM_UNIXTIME(p.edate), '%b') AS month,
@@ -45,8 +50,16 @@ const pltypeBasedEnrollmentservice = async(data)=>{
             AND pl.pl_type != ""
             GROUP BY year, month
             ORDER BY year ASC, MONTH(FROM_UNIXTIME(p.edate)) ASC`, [date, date2, date, date2]);
+            if(query.length>0){
+            await RedisClient.set(`pltypeCacheMonthly${date2}to${date}`, JSON.stringify(query), "EX", 1800)
+            }
             return query;
         }else if(data.body.data === 'YEAR'){
+            const cachedData = await RedisClient.get("pltypeCacheYearly");
+            if(cachedData){
+                console.log("fetched pltypeCacheYearly from redis")
+                return JSON.parse(cachedData)
+            }
             const[rows] = await pool2.query(`SELECT
             YEAR(FROM_UNIXTIME(p.edate)) as year, 
             COUNT( CASE WHEN pl.pl_type = 'LM' THEN pp.policy_num END) AS limitedmed,
@@ -71,9 +84,17 @@ const pltypeBasedEnrollmentservice = async(data)=>{
             AND pl.pl_type != ""
             AND YEAR(FROM_UNIXTIME(p.edate)) >= YEAR(DATE_SUB(CURDATE(), INTERVAL 6 YEAR))
             AND YEAR(FROM_UNIXTIME(p.edate)) < YEAR(CURDATE()) GROUP BY year ORDER BY year;`)
+            if(rows.length>0){
+            await RedisClient.set("pltypeCacheYearly", JSON.stringify(rows), "EX", 1800)
+            }
             return rows;
         }else if(data.body.data === 'WEEK'){
             const weekDate = data.body.weekDate || new Date().toISOString().split('T')[0];
+            const cachedData = await RedisClient.get(`pltypeCacheWeekly${weekDate}`);
+            if(cachedData){
+                console.log(`fetched pltypeCacheWeekly${weekDate} from redis`)
+                return JSON.parse(cachedData)
+            }
             const [rows] = await pool2.query (`SELECT
             DATE_FORMAT(FROM_UNIXTIME(p.edate), '%a') AS day,
             COUNT( CASE WHEN pl.pl_type = 'LM' THEN pp.policy_num END) AS limitedmed,
@@ -99,9 +120,17 @@ const pltypeBasedEnrollmentservice = async(data)=>{
             AND YEARWEEK(FROM_UNIXTIME(p.edate, '%Y-%m-%d')) = YEARWEEK(?)
             GROUP BY day
             ORDER BY DATE(FROM_UNIXTIME(p.edate))`,[weekDate]);
+            if(rows.length>0){
+                await RedisClient.set(`pltypeCacheWeekly${weekDate}`, JSON.stringify(rows), "EX", 1800)
+            }
             return rows;
         }else{
             const date = data.body.date || new Date().toISOString().split('T')[0];
+            const cachedData = await RedisClient.get(`pltypeDaily${date}`)
+            if(cachedData){
+                console.log(` fetched pltypeDaily${date} from redis`)
+                return JSON.parse(cachedData)
+            }
             const [rows] = await pool2.query(`SELECT
             FROM_UNIXTIME((p.edate), '%H') AS time,
             COUNT( CASE WHEN pl.pl_type = 'LM' THEN pp.policy_num END) AS limitedmed,
@@ -126,6 +155,9 @@ const pltypeBasedEnrollmentservice = async(data)=>{
             AND pl.pl_type != ""
             AND FROM_UNIXTIME(p.edate, '%Y-%m-%d') = ?
             GROUP BY time`, [date]);
+            if(rows.length>0){
+                await RedisClient.set(`pltypeDaily${date}`, JSON.stringify(rows), "EX", 1800)
+            }
             return rows;
         }
     }catch(err){

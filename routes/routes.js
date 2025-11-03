@@ -8,7 +8,6 @@ const reinstatedPolicy = require("../controllers/reinstatedPolicies.controller")
 const policyStatus = require("../controllers/policyStatusService.controller");
 const { directList, nonDirectList } = require("../controllers/directAndNonDirectList.controller");
 const {sendEmail, saveBase64Image} = require("../controllers/sendEmail.controller");
-const chartExcel = require("../controllers/xlsxchart.controller");
 const { loginAdmin, verifyAdminOTP, logout, refreshAccessToken } = require("../controllers/adminLogin.controller");
 const authenticateUser = require("../middleware/authentication");
 
@@ -23,7 +22,6 @@ router.get('/directlist', authenticateUser, directList)
 router.get('/nondirectlist',authenticateUser,nonDirectList)
 router.post('/sendemail', authenticateUser,sendEmail);
 router.post('/saveimg', authenticateUser,saveBase64Image)
-router.get('/chart',authenticateUser, chartExcel)
 router.post('/login', loginAdmin )
 router.post('/logout',authenticateUser, logout)
 router.post('/verifyotp', verifyAdminOTP)

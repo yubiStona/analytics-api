@@ -1,7 +1,13 @@
 const { pool2 } = require("../config/db");
+const RedisClient = require("../utils/redisClient");
 
 const reinstatedPolicyService = async()=>{
     try{
+        const cachedData = await RedisClient.get("reinstatedCachedData")
+        if(cachedData){
+            console.log("fetched reinstatedCachedData from redis")
+            return JSON.parse(cachedData)
+        }
         const [rows] = await pool2.query(`SELECT p.policy_id AS Reinstated_Policy, count(p.policy_id) AS Count, GROUP_CONCAT(FROM_UNIXTIME(pu.elgb_act_date, '%Y-%m-%d')) as date
                 FROM policies p
                 JOIN policy_updates pu ON p.policy_id = pu.elgb_policyid
@@ -12,7 +18,11 @@ const reinstatedPolicyService = async()=>{
                 FROM policies p
                 JOIN policy_updates pu ON p.policy_id = pu.elgb_policyid
                 WHERE pu.elgb_act = 'rpc')`)
-        return {reinstated : rows, total_reinstated : rows.length, others : rows2}
+        const result = {reinstated : rows, total_reinstated : rows.length, others : rows2}
+        if(result){
+            await RedisClient.set("reinstatedCachedData", JSON.stringify(result), "EX", 1800)
+        }
+        return result
 
     }catch(err){
         console.error(err)

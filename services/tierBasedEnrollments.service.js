@@ -1,4 +1,5 @@
 const { pool, pool2 } = require("../config/db");
+const RedisClient = require("../utils/redisClient");
 
 const tierBasedEnrollmentservice = async(data)=>{
     try{
@@ -10,6 +11,11 @@ const tierBasedEnrollmentservice = async(data)=>{
             return { error: "Both dates must be present." };
             }
 
+            const cachedData = await RedisClient.get(`tierBasedCachedMonthly${date2}to${date}`)
+            if(cachedData){
+                console.log(`fetched tierBasedCachedMonthly${date2}to${date} from redis`)
+                return JSON.parse(cachedData)
+            }
             function monthDiff(d1, d2) {
             const [y1, m1] = d1.split("-").map(Number);
             const [y2, m2] = d2.split("-").map(Number);
@@ -37,8 +43,16 @@ const tierBasedEnrollmentservice = async(data)=>{
             (pp.pstatus = 3 AND pp.pterm_date > CURDATE())) 
             GROUP BY year, month
             ORDER BY year ASC, MONTH(FROM_UNIXTIME(p.edate)) ASC`, [date, date2, date, date2]);
+            if(query.length>0){
+                await RedisClient.set(`tierBasedCachedMonthly${date2}to${date}`, JSON.stringify(rows), "EX", 1800)
+            }
             return query;
         }else if(data.body.data === 'YEAR'){
+            const cachedData = await RedisClient.get("tierBasedCachedYearly")
+            if(cachedData){
+                console.log("fetched tierBasedCachedYearly from redis")
+                return JSON.parse(cachedData)
+            }
             const[rows] = await pool2.query(`SELECT
             YEAR(FROM_UNIXTIME(p.edate)) as year, 
             COUNT(DISTINCT CASE WHEN pt.tier = 'IO' THEN pp.policy_num END) AS IO_tier,
@@ -55,9 +69,17 @@ const tierBasedEnrollmentservice = async(data)=>{
             (pp.pstatus = 3 AND pp.pterm_date > CURDATE()))
             AND YEAR(FROM_UNIXTIME(p.edate)) >= YEAR(DATE_SUB(CURDATE(), INTERVAL 6 YEAR))
             AND YEAR(FROM_UNIXTIME(p.edate)) < YEAR(CURDATE()) GROUP BY year;`)
+            if(rows.length>0){
+                await RedisClient.set("tierBasedCachedYearly", JSON.stringify(rows), "EX", 1800)
+            }
             return rows;
         }else if(data.body.data === 'WEEK'){
             const weekDate = data.body.weekDate || new Date().toISOString().split('T')[0];
+            const cachedData = await RedisClient.get(`tierBasedCachedWeekly${weekDate}`)
+            if(cachedData){
+                console.log(`fetched tierBasedCachedWeekly${weekDate} from redis`)
+                return JSON.parse(cachedData)
+            }
             const [rows] = await pool2.query (`SELECT
             DATE_FORMAT(FROM_UNIXTIME(p.edate), '%a') AS day,
             COUNT(DISTINCT CASE WHEN pt.tier = 'IO' THEN pp.policy_num END) AS IO_tier,
@@ -75,9 +97,17 @@ const tierBasedEnrollmentservice = async(data)=>{
             AND YEARWEEK(FROM_UNIXTIME(p.edate, '%Y-%m-%d')) = YEARWEEK(?)
             GROUP BY day
             ORDER BY DATE(FROM_UNIXTIME(p.edate))`,[weekDate]);
+            if(rows.length>0){
+                await RedisClient.set(`tierBasedCachedWeekly${weekDate}`, JSON.stringify(rows), "EX", 1800)
+            }
             return rows;
         }else{
             const date = data.body.date || new Date().toISOString().split('T')[0];
+            const cachedData = await RedisClient.get(`tierBasedCachedDaily${date}`)
+            if(cachedData){
+                console.log(`fetched tierBasedCachedDaily${date} from redis`)
+                return JSON.parse(cachedData)
+            }
             const [rows] = await pool2.query(`SELECT
             FROM_UNIXTIME((p.edate), '%H') AS time,
             COUNT(DISTINCT CASE WHEN pt.tier = 'IO' THEN pp.policy_num END) AS IO_tier,
@@ -94,6 +124,9 @@ const tierBasedEnrollmentservice = async(data)=>{
             (pp.pstatus = 3 AND pp.pterm_date > CURDATE())) 
             AND FROM_UNIXTIME(p.edate, '%Y-%m-%d') = ?
             GROUP BY time`, [date]);
+            if(rows.length>0){
+                await RedisClient.set(`tierBasedCachedDaily${date}`, JSON.stringify(rows), "EX", 1800)
+            }
             return rows;
         }
     }catch(err){

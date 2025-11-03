@@ -12,12 +12,10 @@ const runPython = (token) => new Promise((resolve, reject) => {
 
   pythonProcess.stdout.on('data', (data) => {
     stdout += data.toString();
-    console.log("stdout",stdout)
   });
 
   pythonProcess.stderr.on('data', (data) => {
     stderr += data.toString();
-    console.log("stderr",stderr)
   });
 
   pythonProcess.on('close', (code) => {
